@@ -1,0 +1,23 @@
+---
+# zerodowntime.bind9/vars/main.yml
+
+
+#? bind__data_dir:
+#?   type: string
+#?   description: Directory for all zone files.
+#?   required: True
+bind__data_dir: "/var/named"
+
+
+#? bind__group_name:
+#?   type: string
+#?   description: Group name for bind
+#?   required: True
+bind__group_name: named
+
+
+#? bind__user_name:
+#?   type: string
+#?   description: User to run bind
+#?   required: True
+bind__user_name: named

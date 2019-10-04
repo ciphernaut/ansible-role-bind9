@@ -1,0 +1,27 @@
+---
+# zerodowntime.bind9/tasks/zone.yml
+
+
+- debug: var=zone
+
+- name: zone | Check if zone exists
+  stat:
+    path: "{{ bind__data_dir }}/{{ zone.file }}"
+  register: ___zone_status
+
+
+- name: zone | Create/init empty zone from template
+  template:
+    src: "zone.template.j2"
+    dest: "{{ bind__data_dir }}/{{ zone.file }}"
+    owner: root
+    group: "{{ bind__group_name }}"
+    mode: 0640
+    seuser: system_u
+    serole: object_r
+    setype: named_conf_t
+    validate: 'named-checkzone {{ zone.name }} %s'
+  when: "not ___zone_status.stat.exists"
+  notify:
+    - 'reload bind'
+  tags: ['bind', 'configure']

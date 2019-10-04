@@ -1,0 +1,4 @@
+---
+
+- name: zerodowntime.dns_tools
+  src: git+git@git.zdt.io:ansible/roles/zerodowntime.dns_tools.git

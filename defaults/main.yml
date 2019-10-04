@@ -1,0 +1,239 @@
+---
+# zerodowntime.bind9/defaults/main.yml
+
+
+#? bind__package_state:
+#?   type: string
+#?   description: Whether to install a package or not
+#?   required: True
+bind__package_state: present
+
+
+#? bind__listen:
+#?   type: string
+#?   description: Defines the IP address(es) on which BIND
+#?                 will listen for incoming queries
+#?   required: True
+# Format:
+#   bind__listen: []
+bind__listen: 127.0.0.1
+
+
+#? bind__listen6:
+#?   type: string
+#?   description: Defines the IPv6 address(es) on which BIND
+#?                 will listen for incoming queries
+#?   required: True
+bind__listen6: !!null
+
+
+#? bind__allow_query:
+#?   type: string
+#?   description: Defines an match list of IP address(es)
+#?                which are allowed to issue queries to the server
+#?   required: True
+bind__allow_query: localhost
+
+
+#? bind__allow_query_cache:
+#?   type: string
+#?   description: Defines an address_match_list of IP address(es)
+#?                which are allowed to issue queries that access the local cache
+#?   required: True
+bind__allow_query_cache: !!null
+
+
+#? bind__recursion:
+#?   type: bool
+#?   description: Defines DNS query requests recursion behaviour
+#?   required: True
+bind__recursion: true
+
+
+#? bind__allow_recursion:
+#?   type: string
+#?   description: Specifies which hosts are allowed to make recursive
+#?                queries through this server
+#?   required: True
+bind__allow_recursion: !!null
+
+
+#? bind__allow_transfer:
+#?   type: string
+#?   description: IP address(es) that are allowed to transfer (copy)
+#?                the zone information from the server (master or slave for the zone)
+#?   required: True
+# info: slaves allowed in zone clauses
+bind__allow_transfer: "none"
+
+
+#? bind__forwarders:
+#?   type: list
+#?   description: Specifies the name servers (mostly of the provider) to which
+#?                DNS requests should be forwarded if they cannot be resolved directly
+#?   required: True
+# bind__forwarders:
+# - 8.8.8.8
+# - 8.8.4.4
+bind__forwarders: []
+
+
+#? bind__auth_nxdomain:
+#?   type: bool
+#?   description: Whether to allow the server to answer authoritatively
+#?                when returning NXDOMAIN
+#?   required: True
+bind__auth_nxdomain: false
+
+
+#? bind__acl:
+#?   type: dict
+#?   description: BIND address match lists allowing control over what hosts or users
+#?                may perform what operations on the name server
+#?   required: True
+# example:
+# bind__acl:
+#   internals:
+#   - 127.0.0.0/8
+#   - 10.50.0.0/24
+#   public:
+#   - 10.100.0.0/24
+bind__acl: {}
+
+
+#? bind__version:
+#?   type: string
+#?   description: Version of BIND
+#?   required: True
+# bind__version: !null (to disable function)
+bind__version: "none"
+
+
+#? bind__dnssec_enable:
+#?   type: bool
+#?   description: Whether a secure DNS service is being used
+#?   required: True
+bind__dnssec_enable: true
+
+
+#? bind__dnssec_validation:
+#?   type: bool
+#?   description: Indicates that a resolver (a caching or caching-only name server)
+#?                will attempt to validate replies from DNSSEC enabled (signed) zones
+#?   required: True
+bind__dnssec_validation: true
+
+
+#? bind__zone:
+#?   type: dict
+#?   description: zone field in named.conf DNS config file
+#?   required: True
+#Example
+#bind__zone:
+# '.':
+#   type: hint
+#   file: named.ca
+# dev:
+#   type: master
+#   file: dev.zone
+#   allow-update: string or [list]
+# dev.example.com:
+#   type: master
+#   file: dev.example.com
+bind__zone:
+  # required this zone for recursive queries
+  '.':
+    type: hint
+    file: named.ca
+
+
+#? bind__include:
+#?   type: list
+#?   description: The 'include' statement reads the specified file at the point
+#?                it is encountered (named.conf)
+#?   required: True
+bind__include:
+  - /etc/named.rfc1912.zones
+  - /etc/named.root.key
+
+
+#? bind__zone_def_ttl:
+#?   type: int
+#?   description: Time to Live value for the zone
+#?   required: True
+bind__zone_def_ttl: 86400
+
+
+#? bind__zone_soa_def_refresh:
+#?   type: int
+#?   description: The elapsed time after which the primary nameserver
+#?                notifies secondary nameservers to refresh their database
+#?   required: True
+bind__zone_soa_def_refresh: 21600
+
+
+#? bind__zone_soa_def_retry:
+#?   type: int
+#?   description: The time to wait after which a refresh fails before trying to refresh again
+#?   required: True
+bind__zone_soa_def_retry: 3600
+
+
+#? bind__zone_soa_def_expire:
+#?   type: int
+#?   description: The time after which the zone is no longer authoritative and the root
+#?                nameservers must be queried
+#?   required: True
+bind__zone_soa_def_expire: 604800
+
+
+#? bind__zone_soa_def_minttl:
+#?   type: int
+#?   description: The amount of that time that other nameservers cache the zone’s information
+#?   required: True
+bind__zone_soa_def_minttl: 86400
+
+
+#? bind__zone_def_ns1:
+#?   type: string
+#?   description: Nameserver, specifies the system that provides DNS records for the domain
+#?   required: True
+bind__zone_def_ns1: 127.0.0.1
+
+
+#? bind__zone_def_ns2:
+#?   type: string
+#?   description: Secondary Nameserver
+#?   required: True
+bind__zone_def_ns2: 127.0.0.2
+
+
+#? bind__view:
+#?   type: dict
+#?   description: The view clause allows BIND to provide different functionality based on
+#?                the hosts accessing it
+#?   required: True
+# named.rfc1912.zones:13: when using 'view' statements, all zones must be in views
+bind__view: {}
+#  vlocal:
+#    match-clients: 127.0.0.1 # string or []
+#    recursion: yes|no|null
+#    include: [] or string
+#    zone:
+#      wombat:
+#        type: master
+#        file: wombat.zone
+#        allow-update: string or [list]
+#      kapibara:
+#        type: master
+#        file: wombat.zone
+#         [...]
+#  vpublic:
+#      [...]
+
+
+#? bind__environmentfile_options:
+#?   type: list
+#?   description: These additional options will be passed to named at startup.
+#?   required: True
+bind__environmentfile_options: []

@@ -1,0 +1,17 @@
+{{ ansible_managed|comment(decoration='; ') }}
+{% set serial = ansible_date_time.year|string+ansible_date_time.month|string+ ansible_date_time.day|string+'00' %}
+
+$ORIGIN {{ zone.name }}.
+$TTL {{ bind__zone_def_ttl }}
+@           IN    SOA    ns1.{{ zone.name }}.      root.{{ zone.name }}. (
+                       {{ serial }} ; serial
+                       {{ bind__zone_soa_def_refresh }}      ; refresh after 6 hours
+                       {{ bind__zone_soa_def_retry }}       ; retry after 1 hour
+                       {{ bind__zone_soa_def_expire }}     ; expire after 1 week
+                       {{ bind__zone_soa_def_minttl }}     ; minimum TTL of 1 day
+)
+            IN    NS	ns1.{{ zone.name }}.
+            IN    NS	ns2.{{ zone.name }}.
+
+ns1         IN    A   {{ bind__zone_def_ns1 }}
+ns2         IN    A   {{ bind__zone_def_ns2 }}

@@ -1,0 +1,23 @@
+---
+# https://git.zdt.io/misc/gitlab_templates
+include:
+  - project: 'misc/gitlab_templates'
+    ref: master
+    file: '/molecule/.base-template.yml'
+  - project: 'misc/gitlab_templates'
+    ref: master
+    file: '/.clone-before-script-template.yml'
+
+stages:
+  - libvirt.ansible-2.7.10
+
+# images link
+# https://cloud.docker.com/u/zerodowntime/repository/docker/zerodowntime/gitlab_runner_executor_molecule
+
+# job libvirt
+libvirt.ansible-2.7:
+  extends: .molecule.default
+  stage: libvirt.ansible-2.7.10
+  image: zerodowntime/gitlab_runner_executor_molecule:ansible-2.7.10-molecule-2.20.0
+  script:
+    - molecule test -s libvirt

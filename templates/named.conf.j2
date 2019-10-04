@@ -1,0 +1,144 @@
+#jinja2: lstrip_blocks:True, trim_blocks: True
+{% macro macro_zone(name, data) %}
+zone "{{ name }}" IN {
+  type {{ data['type'] }};
+  {% if (data['file'] is defined) and (data['file'])  %}
+  file "{{ data['file'] }}";
+  {% endif %}
+  {% if (data['forward'] is defined) and (data['forward'])  %}
+  forward {{ data['forward'] }};
+  {% endif %}
+  {% if (data['forwarders'] is defined) and (data['forwarders'])  %}
+  forwarders { {{ data['forwarders'] if data['forwarders'] is string else data['forwarders']|join('; ') }}; };
+  {% endif %}
+  {% if (data['allow-update'] is defined) and (data['allow-update']) %}
+  allow-update { {{ data['allow-update'] if data['allow-update'] is string else data['allow-update']|join('; ') }}; };
+  {% endif %}
+  {% if (data['masters'] is defined) and (data['masters'])  %}
+  masters { {{ data['masters'] if data['masters'] is string else data['masters']|join('; ') }}; };
+  {% endif %}
+};
+{% endmacro %}
+{{ ansible_managed|comment }}
+
+{% if bind__acl %}
+{% for _acl in bind__acl %}
+
+acl {{ _acl }} {
+  {% for _entry in bind__acl[_acl] %}
+  {{ _entry | string }};
+  {% endfor %}
+};
+{% endfor %}
+{% endif %}
+
+
+options {
+
+  listen-on port 53 { {{ bind__listen if bind__listen is string else bind__listen|join('; ') }}; };
+  {% if bind__listen6 %}
+  listen-on-v6 port 53 { {{ bind__listen6 if bind__listen6 is string else bind__listen6|join('; ') }}; };
+  {% else %}
+  listen-on-v6 port 53 { none; };
+  {% endif %}
+
+  directory   "{{ bind__data_dir }}";
+  dump-file   "{{ bind__data_dir }}/data/cache_dump.db";
+  statistics-file "{{ bind__data_dir }}/data/named_stats.txt";
+  memstatistics-file "{{ bind__data_dir }} /data/named_mem_stats.txt";
+
+  allow-query     { {{ bind__allow_query if bind__allow_query is string else bind__allow_query|join('; ')  }}; };
+  {% if bind__allow_query_cache %}
+  allow-query-cache { {{ bind__allow_query_cache if bind__allow_query_cache is string else bind__allow_query_cache|join('; ')  }}; };
+  {% endif %}
+  allow-transfer { {{ bind__allow_transfer if bind__allow_transfer is string else bind__allow_transfer|join('; ') }} ;};
+
+  recursion {{ 'yes' if bind__recursion else 'no' }};
+  {% if bind__allow_recursion %}
+  allow-recursion { {{ bind__allow_recursion if bind__allow_recursion is string else bind__allow_recursion|join('; ') }}; };
+  {% endif %}
+
+  {% if bind__forwarders %}
+  forwarders {
+  {% for _forwarder in bind__forwarders %}
+    {{ _forwarder }};
+  {% endfor %}
+  };
+  {% endif %}
+
+  dnssec-enable {{ bind__dnssec_enable }};
+  dnssec-validation {{ bind__dnssec_validation }};
+  auth-nxdomain {{ bind__auth_nxdomain }};    # conform to RFC1035
+
+  /* Path to ISC DLV key */
+  bindkeys-file "/etc/named.iscdlv.key";
+
+  managed-keys-directory "{{ bind__data_dir }}/dynamic";
+
+  pid-file "/run/named/named.pid";
+  session-keyfile "/run/named/session.key";
+
+  {% if bind__version %}
+  version {{ bind__version }};
+  {% endif %}
+
+};
+
+logging {
+  channel default_debug {
+    file "data/named.run";
+    severity dynamic;
+  };
+};
+
+{% if bind__include %}
+  {% for _include in bind__include %}
+include "{{ _include }}";
+  {% endfor %}
+{% endif %}
+
+{% if bind__zone %}
+{% for _zone in bind__zone %}
+  {{ macro_zone(_zone,bind__zone[_zone])|indent(2) }}
+{% endfor %}
+{% endif %}
+
+{% if bind__view %}
+{% for _view in bind__view %}
+
+view "{{ _view }}" {
+
+  match-clients { {{ bind__view[_view]['match-clients'] if bind__view[_view]['match-clients'] is string else bind__view[_view]['match-clients']|join('; ')  }}; };
+  {% if (bind__view[_view]['recursion'] is defined) and (bind__view[_view]['recursion']) %}
+  recursion {{ 'yes' if bind__view[_view]['recursion'] else 'no' }};
+  {% endif %}
+  {% if (bind__view[_view]['include'] is defined) and (bind__view[_view]['include']) %}
+
+    {% if bind__view[_view]['include'] is string %}
+  include "{{ bind__view[_view]['include'] }}";
+    {% else %}
+      {% for __item in bind__view[_view]['include'] %}
+  include "{{ __item }}";
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+  {% if bind__view[_view]['zone'] is defined %}
+    {% for _zone in bind__view[_view]['zone'] %}
+
+  {{ macro_zone(_zone, bind__view[_view]['zone'][_zone]) | indent(2) }}
+  {#
+  zone "{{ _zone }}" {
+    type {{ bind__view[_view]['zone'][_zone]['type'] }};
+    file "{{ bind__view[_view]['zone'][_zone]['file'] }}";
+    {% if (bind__view[_view]['zone'][_zone]['allow-update'] is defined) and (bind__view[_view]['zone'][_zone]['allow-update']) %}
+    allow-update { {{ bind__view[_view]['zone'][_zone]['allow-update'] if bind__view[_view]['zone'][_zone]['allow-update'] is string else bind__view[_view]['zone'][_zone]['allow-update']|join('; ') }}; };
+    {% endif %}
+  };
+  #}
+    {% endfor %}
+
+  {% endif %}
+};
+
+{% endfor %}
+{% endif %}

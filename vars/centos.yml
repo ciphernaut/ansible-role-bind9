@@ -1,0 +1,30 @@
+---
+# zerodowntime.bind9/vars/centos.yml
+
+
+#? bind__package_name:
+#?   type: string
+#?   description: Package name to be installed
+#?   required: True
+bind__package_name: bind
+
+
+#? bind__config_file:
+#?   type: string
+#?   description: Configuration file for bind
+#?   required: True
+bind__config_file: /etc/named.conf
+
+
+#? bind__service_name:
+#?   type: string
+#?   description: Service name
+#?   required: True
+bind__service_name: named
+
+
+#? bind__environment_file:
+#?   type: string
+#?   description: File to be used by named deamon at boot time
+#?   required: True
+bind__environment_file: /etc/sysconfig/named

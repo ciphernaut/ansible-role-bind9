@@ -1,0 +1,142 @@
+---
+# zerodowntime.bind9/defaults/main.yml
+
+
+- name: Include os specific variables
+  include_vars: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      files:
+        - '{{ ansible_distribution | lower }}.yml'
+      paths:
+        - 'vars'
+  tags: always
+
+
+- name: Install bind packages
+  package:
+    name: "{{ bind__package_name }}"
+    state: "{{ bind__package_state }}"
+  tags:
+    - bind
+    - bind::install
+
+
+- name: Set datadir permissions
+  file:
+    path: "{{ bind__data_dir }}"
+    state: directory
+    mode: "u=rxw,g=srx,o="
+    owner: root
+    group: "{{ bind__group_name }}"
+    seuser: system_u
+    serole: object_r
+    setype: named_zone_t
+  tags:
+    - bind
+    - bind::configure
+    - bind::install
+
+
+- name: Set runtime directories permissions
+  file:
+    path: "{{ bind__data_dir }}/{{ item }}"
+    state: directory
+    mode: "u=rxw,g=rwx,o="
+    owner: "{{ bind__user_name }}"
+    group: "{{ bind__group_name }}"
+    seuser: system_u
+    serole: object_r
+    setype: named_cache_t
+  with_items:
+    - data
+    - dynamic
+    - slaves
+  tags:
+    - bind
+    - bind::configure
+    - bind::install
+
+
+- name: Include tasks to check and create zones
+  vars:
+    check_existing_zones: >
+            {%- set _file_list_ = [] -%}
+              {%- for element in bind__view -%}
+                {%- if bind__view[element]['zone'] is defined -%}
+                  {%- for item in bind__view[element]['zone'] -%}
+                    {%- if (bind__view[element]['zone'][item]['type'] is defined) and ( bind__view[element]['zone'][item]['type'] in ['master'] ) -%}
+                    {%- set _ = _file_list_.append(dict(name = item, file = bind__view[element]['zone'][item]['file'])) -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+              {%- endfor -%}
+              {%- for item in bind__zone -%}
+                {%- if (bind__zone[item]['type'] is defined) and (bind__zone[item]['type'] in ['master'] ) -%}
+                {%- set _ = _file_list_.append(dict(name = item,file = bind__zone[item]['file'])) -%}
+                {%- endif -%}
+              {%- endfor -%}
+              {%- if 1 -%}{{ _file_list_ }}{%- endif -%}
+  include_tasks: zone.yml
+  with_items: "{{ check_existing_zones }}"
+  loop_control:
+    loop_var: zone
+  tags:
+    - skip_ansible_lint
+    - bind
+    - bind::configure
+    - bind::install
+    - bind::bind-zone
+
+
+- name: Configure bind /etc/named.conf
+  template:
+    src: "named.conf.j2"
+    dest: "{{ bind__config_file }}"
+    owner: root
+    group: "{{ bind__group_name }}"
+    mode: 0640
+    seuser: system_u
+    serole: object_r
+    setype: named_conf_t
+    validate: 'named-checkconf -z %s'
+  notify:
+    - 'reload bind'
+  tags:
+    - bind
+    - bind::configure
+
+
+- name: Configure environment file
+  template:
+    src: "environment-file.j2"
+    dest: "{{ bind__environment_file }}"
+    owner: root
+    group: root
+    mode: 0644
+    seuser: system_u
+    serole: object_r
+    setype: etc_t
+  notify:
+    - 'restart bind'
+  tags:
+    - bind
+    - bind::configure
+
+
+- name: Ensure that service is running
+  service:
+    name: "{{ bind__service_name }}"
+    state: started
+  tags:
+    - bind
+    - bind::running
+
+
+- name: Ensure that bind service is enabled
+  service:
+    name: "{{ bind__service_name }}"
+    enabled: true
+  tags:
+    - bind
+    - bind::enabled
