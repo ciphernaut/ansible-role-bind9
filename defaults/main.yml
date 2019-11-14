@@ -124,6 +124,21 @@ bind__dnssec_enable: true
 bind__dnssec_validation: true
 
 
+#? bind__max_cache_ttl:
+#?   type: integer
+#?   description: sets the maximum time (in seconds) for which the server will cache positive answers
+#?   required: True
+bind__max_cache_ttl: 10
+
+
+#? bind__nmax_cache_ttl:
+#?   type: integer
+#?   description: sets the maximum time (in seconds) for which the server will cache negative (NXDOMAIN)
+#?                answers (positives are defined by max-cache-ttl)
+#?   required: True
+bind__nmax_cache_ttl: 10
+
+
 #? bind__zone:
 #?   type: dict
 #?   description: zone field in named.conf DNS config file
