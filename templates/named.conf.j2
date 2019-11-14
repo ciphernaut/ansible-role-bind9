@@ -70,6 +70,9 @@ options {
   dnssec-validation {{ bind__dnssec_validation }};
   auth-nxdomain {{ bind__auth_nxdomain }};    # conform to RFC1035
 
+  max-cache-ttl {{ bind__max_cache_ttl }};
+  max-ncache-ttl {{ bind__max_ncache_ttl }};
+
   /* Path to ISC DLV key */
   bindkeys-file "/etc/named.iscdlv.key";
 
