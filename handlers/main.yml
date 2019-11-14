@@ -6,9 +6,10 @@
   service:
     name: "{{ bind__service_name }}"
     state: restarted
-
+  become: true
 
 - name: 'reload bind'
   service:
     name: "{{ bind__service_name }}"
     state: reloaded
+  become: true
