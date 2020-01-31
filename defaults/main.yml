@@ -58,6 +58,13 @@ bind__recursion: true
 bind__allow_recursion: !!null
 
 
+#? bind__response_policy:
+#?   type: string
+#?   description: Controls the behavior of RPZ policy processing.
+#?   required: True
+bind__response_policy: !!null
+
+
 #? bind__allow_transfer:
 #?   type: string
 #?   description: IP address(es) that are allowed to transfer (copy)

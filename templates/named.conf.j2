@@ -58,6 +58,10 @@ options {
   allow-recursion { {{ bind__allow_recursion if bind__allow_recursion is string else bind__allow_recursion|join('; ') }}; };
   {% endif %}
 
+  {% if bind__response_policy %}
+  response-policy { {{ bind__response_policy if bind__response_policy is string else bind__response_policy|join('; ') }}; };
+  {% endif %}
+
   {% if bind__forwarders %}
   forwarders {
   {% for _forwarder in bind__forwarders %}
