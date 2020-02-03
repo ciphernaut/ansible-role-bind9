@@ -69,14 +69,14 @@
                 {%- if bind__view[element]['zone'] is defined -%}
                   {%- for item in bind__view[element]['zone'] -%}
                     {%- if (bind__view[element]['zone'][item]['type'] is defined) and ( bind__view[element]['zone'][item]['type'] in ['master'] ) -%}
-                    {%- set _ = _file_list_.append(dict(name = item, file = bind__view[element]['zone'][item]['file'])) -%}
+                    {%- set _ = _file_list_.append(dict(name = item) | combine(bind__view[element]['zone'][item])) -%}
                     {%- endif -%}
                   {%- endfor -%}
                 {%- endif -%}
               {%- endfor -%}
               {%- for item in bind__zone -%}
                 {%- if (bind__zone[item]['type'] is defined) and (bind__zone[item]['type'] in ['master'] ) -%}
-                {%- set _ = _file_list_.append(dict(name = item,file = bind__zone[item]['file'])) -%}
+                {%- set _ = _file_list_.append(dict(name = item) | combine(bind__zone[item]) ) -%}
                 {%- endif -%}
               {%- endfor -%}
               {%- if 1 -%}{{ _file_list_ }}{%- endif -%}

@@ -22,7 +22,7 @@
     serole: object_r
     setype: named_conf_t
     validate: 'named-checkzone {{ zone.name }} %s'
-  when: "not ___zone_status.stat.exists"
+  when: "(not ___zone_status.stat.exists) or (zone.content is defined)"
   become: true
   notify:
     - 'reload bind'
