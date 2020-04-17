@@ -9,6 +9,7 @@
     path: "{{ bind__data_dir }}/{{ zone.file }}"
   become: true
   register: ___zone_status
+  tags: ['bind', 'configure']
 
 
 - name: zone | Create/init empty zone from template
