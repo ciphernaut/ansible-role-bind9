@@ -20,4 +20,4 @@ galaxy_info:
     - system
 
 dependencies:
-  - zerodowntime.dns_tools
+  []
